@@ -11,14 +11,14 @@ public class PostgreSQLTestPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         try {
+            // Load the driver
             Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/testdb", "postgres", "123");
-        } catch (SQLException e) {
+            // Connect to your database
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5432/testdb",
+                    "postgres",
+                    "password");
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

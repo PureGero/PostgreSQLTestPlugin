@@ -33,7 +33,7 @@ public void onEnable() {
         // Connect to your database
         Connection connection = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5432/testdb",
-                "username",
+                "postgres",
                 "password");
     } catch (Exception e) {
         throw new RuntimeException(e);
