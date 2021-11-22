@@ -34,8 +34,7 @@ public class PostgreSQLTestPlugin extends JavaPlugin {
             }
             try {
                 // Load the postgresql jar
-                new URLClassLoader(new URL[] {postgresqlJarFile.toURL()}, this.getClass().getClassLoader());
-                Class.forName("org.postgresql.Driver");
+                Class.forName("org.postgresql.Driver", true, new URLClassLoader(new URL[] {postgresqlJarFile.toURL()}, getClassLoader()));
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
