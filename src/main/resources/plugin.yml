@@ -1,0 +1,13 @@
+name: ${project.name}
+version: ${project.version}
+description: ${project.description}
+main: ${project.groupId}.${project.name}
+author: PureGero
+website: https://github.com/PureGero/${project.name}
+commands:
+  balance:
+    description: See your balance
+    default: true
+  setbalance:
+    description: Set your balance
+    default: true
