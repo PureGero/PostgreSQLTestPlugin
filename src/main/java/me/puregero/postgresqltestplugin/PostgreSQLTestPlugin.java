@@ -5,6 +5,8 @@ import com.impossibl.postgres.api.jdbc.PGNotificationListener;
 import com.impossibl.postgres.jdbc.PGDataSource;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 public class PostgreSQLTestPlugin extends JavaPlugin {
@@ -14,6 +16,7 @@ public class PostgreSQLTestPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         try {
+            // Create the connection
             PGDataSource ds = new PGDataSource();
             ds.setServerName("localhost");
             ds.setDatabaseName("test");
@@ -22,18 +25,30 @@ public class PostgreSQLTestPlugin extends JavaPlugin {
 
             connection = (PGConnection) ds.getConnection();
 
-            PGNotificationListener listener = new PGNotificationListener() {
+            // Listen for notifications
+            connection.addNotificationListener(new PGNotificationListener() {
                 public void notification(int processId, String channelName, String payload) {
-                    System.out.println("notification = " + payload);
+                    getLogger().info("notification for " + channelName + ": " + payload);
+                    // This is where you'd handle notifications from other servers
                 }
-            };
+            });
 
-            Statement statement = connection.createStatement();
-            statement.execute("LISTEN test");
-            statement.close();
-            connection.addNotificationListener(listener);
+            // Listen to the `test` channel
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("LISTEN test");
+            }
+
+            // Send a notification to the `test` channel
+            // This will send the notification to every server listening to the `test` channel
+            sendNotification("test", "payload goes here");
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void sendNotification(String channel, String payload) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("NOTIFY " + channel + ", '" + payload + "'");
         }
     }
 
