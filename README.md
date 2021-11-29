@@ -6,7 +6,7 @@ Open plugin.yml and add the following to it:
 
 ```yml
 libraries:
-  - org.postgresql:postgresql:42.3.1
+  - com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9
 ```
 
 An exemplar plugin.yml:
@@ -15,28 +15,65 @@ An exemplar plugin.yml:
 name: MyPlugin
 main: myplugin.MyPlugin
 libraries:
-  - org.postgresql:postgresql:42.3.1
+  - com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9
 commands:
   balance:
     description: See your balance
     default: true
 ```
 
-## Load the PostgreSQL driver and connect to your database
+## Adding the dependency to your pom.xml
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.impossibl.pgjdbc-ng</groupId>
+        <artifactId>pgjdbc-ng</artifactId>
+        <version>0.8.9</version>
+    </dependency>
+</dependencies>
+```
+
+## Connect to your PostgreSQL database
 
 ```java
+private PGConnection connection;
+
 @Override
 public void onEnable() {
     try {
-        // Load the driver
-        Class.forName("org.postgresql.Driver");
-        // Connect to your database
-        Connection connection = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5432/testdb",
-                "postgres",
-                "password");
+        // Create the connection
+        PGDataSource ds = new PGDataSource();
+        ds.setServerName("localhost");
+        ds.setDatabaseName("test");
+        ds.setUser("postgres");
+        ds.setPassword("password");
+
+        connection = (PGConnection) ds.getConnection();
     } catch (Exception e) {
         throw new RuntimeException(e);
     }
+}
+```
+
+## Listen and send notifications
+```java
+// Listen for notifications
+connection.addNotificationListener(new PGNotificationListener() {
+    public void notification(int processId, String channelName, String payload) {
+        getLogger().info("notification for " + channelName + ": " + payload);
+        // This is where you'd handle notifications from other servers
+    }
+});
+
+// Listen to the `test` channel
+try (Statement statement = connection.createStatement()) {
+    statement.execute("LISTEN test");
+}
+
+// Send a notification to the `test` channel
+// This will send the notification to every server listening to the `test` channel
+try (Statement statement = connection.createStatement()) {
+    statement.execute("NOTIFY test, 'payload goes here'");
 }
 ```
